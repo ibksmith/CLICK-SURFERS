@@ -1,0 +1,34 @@
+{
+  "accountAssociation": {
+    "header": "eyJmaWQiOjEzNjgxNDEsInR5cGUiOiJhdXRoIiwia2V5IjoiMHg4N0M1QmY4OTMzOTdjNjUzQTE0OTc3OTQ5RjAxZDkwRTZkOTEyY0I4In0",
+    "payload": "eyJkb21haW4iOiJjbGlja3N1cmZlcnMudmVyY2VsLmFwcCJ9",
+    "signature": "/6Ooys2tXroYsyhQpi1K2WL5T3nImyQWdc1ADggjDvV5l1MSny6WPpjoTSBRgc4GzqIAmrywfjzuJRPr1+Km7hw="
+  },
+  "baseBuilder": {
+    "ownerAddress": "0x"
+  },
+  "miniapp": {
+    "version": "1",
+    "name": "Click Surfers",
+    "homeUrl": "https://clicksurfers.vercel.app",
+    "iconUrl": "https://clicksurfers.vercel.app/icon.png",
+    "splashImageUrl": "https://clicksurfers.vercel.app/splash.png",
+    "splashBackgroundColor": "#0052FF",
+    "webhookUrl": "https://clicksurfers.vercel.app/api/webhook",
+    "subtitle": "Race penguins on hoverboards!",
+    "description": "A decentralized click race game on Base Network where 10 players compete by clicking fastest to win prizes",
+    "screenshotUrls": [
+      "https://clicksurfers.vercel.app/screenshot1.png",
+      "https://clicksurfers.vercel.app/screenshot2.png",
+      "https://clicksurfers.vercel.app/screenshot3.png"
+    ],
+    "primaryCategory": "games",
+    "tags": ["racing", "web3", "base", "multiplayer", "dapp", "gaming"],
+    "heroImageUrl": "https://clicksurfers.vercel.app/hero.png",
+    "tagline": "Play instantly on Base Network",
+    "ogTitle": "Click Surfers - Race on Base",
+    "ogDescription": "A decentralized click race game where 10 players compete to win prizes on Base Network",
+    "ogImageUrl": "https://clicksurfers.vercel.app/og.png",
+    "noindex": false
+  }
+}
