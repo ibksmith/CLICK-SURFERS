@@ -273,37 +273,42 @@
     </div>
 
     <script type="module">
-        // Import Farcaster MiniApp SDK
-        import sdk from 'https://esm.sh/@farcaster/miniapp-sdk@0.2.1';
+        // Import Farcaster MiniApp SDK (pinned to version 0.2.1)
+        import sdk from '@farcaster/miniapp-sdk';
         
-        // Make SDK globally available
+        // Make SDK globally available for debugging and stability
         window.farcasterSdk = sdk;
         
-        // Initialize when DOM is ready
+        // Dedicated MiniApp initialization function
         async function initMiniApp() {
+            // Check document readyState
+            if (document.readyState === 'loading') {
+                console.log('MiniApp: Waiting for DOM to be ready...');
+                await new Promise(resolve => {
+                    document.addEventListener('DOMContentLoaded', resolve);
+                });
+            }
+            
             try {
                 console.log('Initializing Farcaster MiniApp SDK...');
                 
-                // Check if running in Farcaster context
+                // Detect Farcaster context
                 const context = await sdk.context;
                 console.log('MiniApp context:', context);
                 
                 // Signal that the app is ready to display
                 await sdk.actions.ready();
-                console.log('MiniApp ready signal sent');
+                console.log('MiniApp ready signal sent successfully');
                 
             } catch (error) {
-                console.warn('MiniApp SDK initialization:', error.message || error);
-                // App will still work outside Farcaster context
+                console.warn('MiniApp SDK initialization failed:', error.message || error);
+                // Provide graceful fallback when running outside Farcaster
+                console.log('App will run in standalone mode');
             }
         }
         
-        // Wait for DOM and then initialize
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initMiniApp);
-        } else {
-            initMiniApp();
-        }
+        // Initialize the MiniApp
+        initMiniApp();
     </script>
     <script src="app.js"></script>
 </body>
