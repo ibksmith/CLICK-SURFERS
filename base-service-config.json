@@ -1,0 +1,108 @@
+{
+  "service": {
+    "name": "Click Surfers - Click Race Game",
+    "description": "A decentralized click race game on Base Network where 10 players compete by clicking fastest to win prizes",
+    "version": "1.0.0",
+    "author": "ibukunoluwa.base.eth",
+    "github": "https://github.com/ibksmith/CLICK-SURFERS",
+    "tags": ["game", "dapp", "base", "web3", "miniapp", "farcaster"],
+    "category": "Gaming"
+  },
+  "deployment": {
+    "platform": "vercel",
+    "url": "https://your-vercel-app.vercel.app",
+    "type": "frontend"
+  },
+  "blockchain": {
+    "network": "base",
+    "chainId": 84532,
+    "networkName": "Base Sepolia Testnet",
+    "contracts": [
+      {
+        "name": "ClickRaceGame",
+        "address": "0x4453c351b1dfeff3f8379f441629a4b0e2d5c894",
+        "abi": "contracts/ClickRaceGame.sol",
+        "verified": true,
+        "explorer": "https://sepolia.basescan.org/address/0x4453c351b1dfeff3f8379f441629a4b0e2d5c894"
+      }
+    ]
+  },
+  "integration": {
+    "provider": "ethers.js",
+    "wallet": "MetaMask",
+    "rpc": "https://sepolia.base.org",
+    "features": [
+      "Wallet Connection",
+      "Smart Contract Interaction",
+      "Event Listening",
+      "Transaction Management",
+      "Multi-player Gaming"
+    ]
+  },
+  "game_mechanics": {
+    "max_players": 10,
+    "phases": [
+      {
+        "name": "Voting",
+        "duration": "20 seconds",
+        "description": "Players vote on deposit amount"
+      },
+      {
+        "name": "Payment",
+        "description": "Winners of voting pay deposit to join"
+      },
+      {
+        "name": "Race",
+        "duration": "15 minutes",
+        "description": "Real-time clicking competition"
+      },
+      {
+        "name": "Results",
+        "description": "Prize distribution to top 5 players"
+      }
+    ],
+    "prize_distribution": {
+      "1st_place": "35%",
+      "2nd_place": "25%",
+      "3rd_place": "15%",
+      "4th_place": "10%",
+      "5th_place": "5%",
+      "platform_fee": "10%"
+    }
+  },
+  "technical_specs": {
+    "frontend": {
+      "framework": "Vanilla JavaScript",
+      "styling": "CSS3",
+      "web3_libraries": ["ethers.js v6", "web3.js v4"]
+    },
+    "smart_contracts": {
+      "language": "Solidity",
+      "version": "0.8.19",
+      "framework": "Hardhat"
+    },
+    "features": [
+      "Real-time multiplayer",
+      "On-chain voting mechanism",
+      "Automated prize distribution",
+      "Event-driven updates",
+      "Mobile responsive design",
+      "Farcaster MiniApp integration"
+    ]
+  },
+  "api_endpoints": {
+    "base_url": "https://your-vercel-app.vercel.app",
+    "health": "/",
+    "miniapp_manifest": "/.well-known/farcaster.json"
+  },
+  "social": {
+    "farcaster": "ibukunoluwa.base.eth",
+    "email": "ibksmith25@gmail.com"
+  },
+  "base_dev_registry": {
+    "register_url": "https://base.dev/register",
+    "category": "Gaming DApps",
+    "visibility": "public",
+    "submission_date": "2025-11-10"
+  }
+}
