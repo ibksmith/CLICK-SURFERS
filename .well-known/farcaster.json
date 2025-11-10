@@ -9,26 +9,26 @@
   },
   "miniapp": {
     "version": "1",
-    "name": "Click Race Surfers",
-    "homeUrl": "https://your-domain.com",
-    "iconUrl": "https://your-domain.com/icon.png",
-    "splashImageUrl": "https://your-domain.com/splash.png",
+    "name": "Click Surfers",
+    "homeUrl": "https://clicksurfers.vercel.app/",
+    "iconUrl": "https://clicksurfers.vercel.app/icon.png",
+    "splashImageUrl": "https://clicksurfers.vercel.app/splash.png",
     "splashBackgroundColor": "#0052FF",
-    "webhookUrl": "https://your-domain.com/api/webhook",
+    "webhookUrl": "https://clicksurfers.vercel.app/api/webhook",
     "subtitle": "Race penguins on hoverboards!",
-    "description": "A fast, fun way to challenge friends in real time.",
+    "description": "A decentralized click race game on Base Network where 10 players compete by clicking fastest to win prizes",
     "screenshotUrls": [
-      "https://your-domain.com/s1.png",
-      "https://your-domain.com/s2.png",
-      "https://your-domain.com/s3.png"
+      "https://clicksurfers.vercel.app/screenshot1.png",
+      "https://clicksurfers.vercel.app/screenshot2.png",
+      "https://clicksurfers.vercel.app/screenshot3.png"
     ],
     "primaryCategory": "games",
-    "tags": ["racing", "web3", "base", "multiplayer"],
-    "heroImageUrl": "https://your-domain.com/og.png",
-    "tagline": "Play instantly",
-    "ogTitle": "Click Race",
-    "ogDescription": "Challenge friends in real time.",
-    "ogImageUrl": "https://your-domain.com/og.png",
-    "noindex": true
+    "tags": ["racing", "web3", "base", "multiplayer", "dapp", "gaming"],
+    "heroImageUrl": "https://clicksurfers.vercel.app/hero.png",
+    "tagline": "Play instantly on Base Network",
+    "ogTitle": "Click Surfers - Race on Base",
+    "ogDescription": "A decentralized click race game where 10 players compete to win prizes on Base Network",
+    "ogImageUrl": "https://clicksurfers.vercel.app/og.png",
+    "noindex": false
   }
 }
