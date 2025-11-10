@@ -10,8 +10,8 @@
     --card-bg-tertiary: #e9ecef;
     --border-color: rgba(0, 82, 255, 0.1);
     --shadow-color: rgba(0, 0, 0, 0.3);
-    --doodle-color: rgba(0, 82, 255, 0.06);
-    --doodle-header: rgba(0, 82, 255, 0.08);
+    --doodle-color: rgba(0, 82, 255, 0.03);
+    --doodle-header: rgba(0, 82, 255, 0.04);
 }
 
 body.dark-mode {
@@ -26,8 +26,8 @@ body.dark-mode {
     --card-bg-tertiary: #333333;
     --border-color: rgba(0, 212, 255, 0.2);
     --shadow-color: rgba(0, 0, 0, 0.6);
-    --doodle-color: rgba(0, 212, 255, 0.12);
-    --doodle-header: rgba(0, 212, 255, 0.15);
+    --doodle-color: rgba(0, 212, 255, 0.06);
+    --doodle-header: rgba(0, 212, 255, 0.08);
 }
 
 * {
