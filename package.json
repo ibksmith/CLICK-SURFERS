@@ -1,0 +1,35 @@
+{
+  "name": "click-race-hover-boarders",
+  "version": "1.0.0",
+  "description": "A decentralized click race game with hover boarders, voting, and prize distribution",
+  "main": "app.js",
+  "scripts": {
+    "start": "npx http-server -p 8000",
+    "deploy": "hardhat run scripts/deploy.js",
+    "test": "hardhat test",
+    "compile": "hardhat compile"
+  },
+  "keywords": [
+    "blockchain",
+    "game",
+    "web3",
+    "ethereum",
+    "dapp",
+    "click-race"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.0"
+  },
+  "dependencies": {
+    "web3": "^4.3.0",
+    "wagmi": "^2.0.0",
+    "viem": "^2.0.0",
+    "@tanstack/react-query": "^5.0.0",
+    "@farcaster/miniapp-wagmi-connector": "^0.1.0",
+    "@farcaster/frame-sdk": "^0.1.0",
+    "@farcaster/miniapp-sdk": "^0.1.0"
+  }
+}

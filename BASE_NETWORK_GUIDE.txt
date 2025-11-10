@@ -1,0 +1,186 @@
+╔═══════════════════════════════════════════════════════════════╗
+║         CLICK RACE: HOVER BOARDERS - BASE NETWORK GUIDE       ║
+╚═══════════════════════════════════════════════════════════════╝
+
+🌐 ETHEREUM BASE NETWORK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Base is Coinbase's Ethereum Layer 2 (L2) network offering:
+✅ Fast transactions (2-second blocks)
+✅ Low fees (~$0.01 per transaction)
+✅ Ethereum security
+✅ Full EVM compatibility
+
+
+📋 NETWORK DETAILS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BASE MAINNET (Production)
+├─ Chain ID: 8453
+├─ RPC URL: https://mainnet.base.org
+├─ Explorer: https://basescan.org
+├─ Currency: ETH
+└─ Bridge: https://bridge.base.org
+
+BASE SEPOLIA TESTNET (Testing) ⭐ RECOMMENDED
+├─ Chain ID: 84532
+├─ RPC URL: https://sepolia.base.org
+├─ Explorer: https://sepolia.basescan.org
+├─ Currency: ETH (Test)
+└─ Faucet: https://www.coinbase.com/faucets/base-ethereum-goerli-faucet
+
+
+🚀 QUICK START DEPLOYMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Get Test ETH
+   → Visit: https://www.coinbase.com/faucets/base-ethereum-goerli-faucet
+   → Connect wallet
+   → Request test ETH
+
+2. Configure Environment
+   → cp .env.example .env
+   → Add your PRIVATE_KEY (no 0x prefix)
+   → Add BASESCAN_API_KEY (optional)
+
+3. Deploy Contract
+   → npm install
+   → npx hardhat compile
+   → npx hardhat run scripts/deploy.js --network baseSepolia
+
+   Or use the deployment script:
+   → ./deploy-to-base.sh
+
+4. Update Contract Address
+   → Copy deployed contract address
+   → Edit contract-integration.js
+   → Update: const CONTRACT_ADDRESS = 'YOUR_ADDRESS';
+
+5. Launch App
+   → npm start
+   → Open http://localhost:8000
+   → Connect MetaMask
+   → Start playing!
+
+
+🔧 METAMASK CONFIGURATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add Base Sepolia to MetaMask:
+1. Open MetaMask
+2. Click network dropdown
+3. Select "Add Network"
+4. Enter details:
+   Network Name: Base Sepolia
+   RPC URL: https://sepolia.base.org
+   Chain ID: 84532
+   Currency Symbol: ETH
+   Block Explorer: https://sepolia.basescan.org
+
+Note: The app will auto-prompt MetaMask to add the network!
+
+
+💡 HELPFUL COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Compile contracts:
+$ npx hardhat compile
+
+Deploy to Base Sepolia:
+$ npx hardhat run scripts/deploy.js --network baseSepolia
+
+Deploy to Base Mainnet:
+$ npx hardhat run scripts/deploy.js --network base
+
+Verify contract:
+$ npx hardhat verify --network baseSepolia DEPLOYED_ADDRESS
+
+Run local server:
+$ npm start
+
+
+🔗 USEFUL LINKS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Official Base Website: https://base.org
+Base Documentation: https://docs.base.org
+Base Discord: https://discord.gg/buildonbase
+Bridge to Base: https://bridge.base.org
+BaseScan (Explorer): https://basescan.org
+Sepolia Faucet: https://www.coinbase.com/faucets/base-ethereum-goerli-faucet
+
+
+💰 GAS & FEES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Typical transaction costs on Base:
+├─ Gas Price: ~1 gwei
+├─ Simple Transfer: ~$0.01
+├─ Contract Deployment: ~$0.50 - $2
+├─ Vote Transaction: ~$0.01
+├─ Pay Deposit: ~$0.02
+└─ Game Action: ~$0.01 - $0.02
+
+Compare to Ethereum Mainnet: 50-100x cheaper!
+
+
+🎮 GAME-SPECIFIC NOTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Deposit Amounts:
+The contract uses these values (in ETH):
+├─ $0.5 = 0.0005 ETH
+├─ $1.0 = 0.001 ETH
+├─ $1.5 = 0.0015 ETH
+├─ $2.0 = 0.002 ETH
+├─ $2.5 = 0.0025 ETH
+├─ $3.0 = 0.003 ETH
+├─ $3.5 = 0.0035 ETH
+├─ $4.0 = 0.004 ETH
+├─ $4.5 = 0.0045 ETH
+└─ $5.0 = 0.005 ETH
+
+Prize Distribution:
+├─ 1st Place: 35%
+├─ 2nd Place: 25%
+├─ 3rd Place: 15%
+├─ 4th Place: 10%
+├─ 5th Place: 5%
+└─ Platform Fee: 10%
+
+
+⚠️ SECURITY REMINDERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ NEVER commit .env file to git
+✓ NEVER share your private key
+✓ Test on Sepolia before mainnet
+✓ Verify contract on BaseScan
+✓ Keep small amounts in deployment wallet
+✓ Use hardware wallet for mainnet
+
+
+📞 TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+"Insufficient funds" error:
+→ Get test ETH from faucet
+
+"Wrong network" error:
+→ Switch MetaMask to Base Sepolia
+
+"Contract not deployed" error:
+→ Check CONTRACT_ADDRESS in contract-integration.js
+
+"Transaction failed" error:
+→ Check you have enough ETH for gas
+→ Ensure you're in correct game phase
+
+
+════════════════════════════════════════════════════════════════
+
+Happy Building on Base! 🏁🛹
+
+Have questions? Check the README.md or Base documentation.
+
+════════════════════════════════════════════════════════════════

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="fc:miniapp" content='{"version":"next","imageUrl":"https://your-domain.com/embed.png","button":{"title":"Play Now","action":{"type":"launch_miniapp","name":"Click Race","url":"https://your-domain.com"}}}}'>
+    <title>Click Race - Hover Boarders</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Top Controls -->
+        <div class="top-controls">
+            <button id="darkModeToggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
+                <span class="toggle-icon">🌙</span>
+            </button>
+            <button id="connectWalletBtn" class="btn-wallet">
+                <span id="walletStatus">Connect Wallet</span>
+            </button>
+        </div>
+        
+        <header>
+            <h1>🏁 Click Race: Hover Boarders 🏁</h1>
+            <div class="game-info">
+                <div class="info-card">
+                    <span class="label">Game ID:</span>
+                    <span id="gameId" class="value">-</span>
+                </div>
+                <div class="info-card">
+                    <span class="label">Total Pool:</span>
+                    <span id="totalPool" class="value">0 ETH</span>
+                </div>
+                <div class="info-card">
+                    <span class="label">Contestants:</span>
+                    <span id="contestantCount" class="value">0/5</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Phase 1: Voting -->
+        <section id="votingSection" class="section">
+            <h2>Phase 1: Vote for Deposit Amount</h2>
+            <div class="timer-container">
+                <div class="timer">
+                    <span class="timer-label">Time Remaining:</span>
+                    <span id="votingTimer" class="timer-value">20s</span>
+                </div>
+            </div>
+            
+            <div class="deposit-tabs">
+                <button class="deposit-tab" data-value="0.25">$0.25</button>
+                <button class="deposit-tab" data-value="0.5">$0.5</button>
+                <button class="deposit-tab" data-value="1">$1</button>
+                <button class="deposit-tab" data-value="3">$3</button>
+            </div>
+
+            <div class="vote-results">
+                <h3>Current Votes</h3>
+                <div id="voteDisplay" class="vote-bars"></div>
+            </div>
+        </section>
+
+        <!-- Phase 2: Payment -->
+        <section id="paymentSection" class="section hidden">
+            <h2>Phase 2: Pay Deposit to Join</h2>
+            <div class="payment-info">
+                <p class="winning-deposit">Winning Deposit Amount: <span id="winningDeposit">-</span></p>
+                <button id="payNowBtn" class="btn-primary">💰 Pay Now</button>
+            </div>
+        </section>
+
+        <!-- Phase 3: Game -->
+        <section id="gameSection" class="section hidden">
+            <h2>Phase 3: Race from Point Nemo to Point Terminus!</h2>
+            <div class="race-info">
+                <div class="location-info">
+                    <span class="start-point">📍 Point Nemo</span>
+                    <span class="distance">100 Miles</span>
+                    <span class="end-point">🏁 Point Terminus</span>
+                </div>
+                <div class="race-timer">
+                    <span class="timer-label">Race Time:</span>
+                    <span id="raceTimer" class="timer-value">15:00</span>
+                </div>
+            </div>
+            <p class="game-instruction">Click your hover board to gain speed! Race to Point Terminus!</p>
+            
+            <div class="race-track">
+                <div class="contestant" data-id="0" data-headband="red">
+                    <div class="race-lane">
+                        <div class="lane-markers"></div>
+                        <div class="hover-board" data-position="0">
+                            <div class="penguin-surfer">
+                                <div class="headband headband-red"></div>
+                                <div class="penguin-emoji">🐧</div>
+                            </div>
+                            <div class="board-surface">🛹</div>
+                        </div>
+                        <div class="finish-flag">🏁</div>
+                    </div>
+                    <div class="contestant-info">
+                        <div class="contestant-name">Player 1</div>
+                        <div class="stats">
+                            <span class="distance-covered">0 mi</span>
+                            <span class="speed">0 mph</span>
+                            <span class="click-count">0 clicks</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="contestant" data-id="1" data-headband="blue">
+                    <div class="race-lane">
+                        <div class="lane-markers"></div>
+                        <div class="hover-board" data-position="0">
+                            <div class="penguin-surfer">
+                                <div class="headband headband-blue"></div>
+                                <div class="penguin-emoji">🐧</div>
+                            </div>
+                            <div class="board-surface">🛹</div>
+                        </div>
+                        <div class="finish-flag">🏁</div>
+                    </div>
+                    <div class="contestant-info">
+                        <div class="contestant-name">Player 2</div>
+                        <div class="stats">
+                            <span class="distance-covered">0 mi</span>
+                            <span class="speed">0 mph</span>
+                            <span class="click-count">0 clicks</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="contestant" data-id="2" data-headband="green">
+                    <div class="race-lane">
+                        <div class="lane-markers"></div>
+                        <div class="hover-board" data-position="0">
+                            <div class="penguin-surfer">
+                                <div class="headband headband-green"></div>
+                                <div class="penguin-emoji">🐧</div>
+                            </div>
+                            <div class="board-surface">🛹</div>
+                        </div>
+                        <div class="finish-flag">🏁</div>
+                    </div>
+                    <div class="contestant-info">
+                        <div class="contestant-name">Player 3</div>
+                        <div class="stats">
+                            <span class="distance-covered">0 mi</span>
+                            <span class="speed">0 mph</span>
+                            <span class="click-count">0 clicks</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="contestant" data-id="3" data-headband="yellow">
+                    <div class="race-lane">
+                        <div class="lane-markers"></div>
+                        <div class="hover-board" data-position="0">
+                            <div class="penguin-surfer">
+                                <div class="headband headband-yellow"></div>
+                                <div class="penguin-emoji">🐧</div>
+                            </div>
+                            <div class="board-surface">🛹</div>
+                        </div>
+                        <div class="finish-flag">🏁</div>
+                    </div>
+                    <div class="contestant-info">
+                        <div class="contestant-name">Player 4</div>
+                        <div class="stats">
+                            <span class="distance-covered">0 mi</span>
+                            <span class="speed">0 mph</span>
+                            <span class="click-count">0 clicks</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="contestant" data-id="4" data-headband="purple">
+                    <div class="race-lane">
+                        <div class="lane-markers"></div>
+                        <div class="hover-board" data-position="0">
+                            <div class="penguin-surfer">
+                                <div class="headband headband-purple"></div>
+                                <div class="penguin-emoji">🐧</div>
+                            </div>
+                            <div class="board-surface">🛹</div>
+                        </div>
+                        <div class="finish-flag">🏁</div>
+                    </div>
+                    <div class="contestant-info">
+                        <div class="contestant-name">Player 5</div>
+                        <div class="stats">
+                            <span class="distance-covered">0 mi</span>
+                            <span class="speed">0 mph</span>
+                            <span class="click-count">0 clicks</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-controls">
+                <button id="endGameBtn" class="btn-secondary">End Game</button>
+            </div>
+        </section>
+
+        <!-- Phase 4: Results -->
+        <section id="resultsSection" class="section hidden">
+            <h2>🏆 Game Results 🏆</h2>
+            <div class="results-container">
+                <div class="podium">
+                    <div class="podium-place second">
+                        <div class="trophy">🥈</div>
+                        <div class="place-info">
+                            <div class="place-label">2nd Place</div>
+                            <div class="winner-name" id="winner2">-</div>
+                            <div class="prize-amount" id="prize2">25%</div>
+                            <button class="claim-btn" id="claimBtn2" style="display: none;">💰 Claim Prize</button>
+                        </div>
+                        <div class="podium-bar" style="height: 150px"></div>
+                    </div>
+                    <div class="podium-place first">
+                        <div class="trophy">🥇</div>
+                        <div class="place-info">
+                            <div class="place-label">1st Place</div>
+                            <div class="winner-name" id="winner1">-</div>
+                            <div class="prize-amount" id="prize1">35%</div>
+                            <button class="claim-btn" id="claimBtn1" style="display: none;">💰 Claim Prize</button>
+                        </div>
+                        <div class="podium-bar" style="height: 200px"></div>
+                    </div>
+                    <div class="podium-place third">
+                        <div class="trophy">🥉</div>
+                        <div class="place-info">
+                            <div class="place-label">3rd Place</div>
+                            <div class="winner-name" id="winner3">-</div>
+                            <div class="prize-amount" id="prize3">15%</div>
+                            <button class="claim-btn" id="claimBtn3" style="display: none;">💰 Claim Prize</button>
+                        </div>
+                        <div class="podium-bar" style="height: 100px"></div>
+                    </div>
+                </div>
+                
+                <div class="other-winners">
+                    <div class="winner-row">
+                        <span class="position">4th</span>
+                        <span class="winner-name" id="winner4">-</span>
+                        <span class="prize" id="prize4">10%</span>
+                        <button class="claim-btn claim-btn-small" id="claimBtn4" style="display: none;">💰 Claim</button>
+                    </div>
+                    <div class="winner-row">
+                        <span class="position">5th</span>
+                        <span class="winner-name" id="winner5">-</span>
+                        <span class="prize" id="prize5">5%</span>
+                        <button class="claim-btn claim-btn-small" id="claimBtn5" style="display: none;">💰 Claim</button>
+                    </div>
+                </div>
+
+                <div class="platform-fee">
+                    <p>Platform Fee: 10% of Total Pool</p>
+                </div>
+
+                <button id="newGameBtn" class="btn-primary">Start New Game</button>
+            </div>
+        </section>
+        
+        <!-- Attribution -->
+        <footer class="game-footer">
+            <div class="footer-content">
+                <a href="https://base.org" target="_blank" rel="noopener noreferrer" class="footer-base-logo" aria-label="Visit Base.org"></a>
+                <p>Built by <strong>ibukunoluwa.base.eth</strong></p>
+            </div>
+            <p class="contract-address">Contract: <code>0x4453c351b1dfeff3f8379f441629a4b0e2d5c894</code></p>
+        </footer>
+    </div>
+
+    <script type="module">
+        // Import Farcaster MiniApp SDK
+        import sdk from 'https://esm.sh/@farcaster/miniapp-sdk@0.2.1';
+        
+        // Make SDK globally available
+        window.farcasterSdk = sdk;
+        
+        // Initialize when DOM is ready
+        async function initMiniApp() {
+            try {
+                console.log('Initializing Farcaster MiniApp SDK...');
+                
+                // Check if running in Farcaster context
+                const context = await sdk.context;
+                console.log('MiniApp context:', context);
+                
+                // Signal that the app is ready to display
+                await sdk.actions.ready();
+                console.log('MiniApp ready signal sent');
+                
+            } catch (error) {
+                console.warn('MiniApp SDK initialization:', error.message || error);
+                // App will still work outside Farcaster context
+            }
+        }
+        
+        // Wait for DOM and then initialize
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initMiniApp);
+        } else {
+            initMiniApp();
+        }
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>

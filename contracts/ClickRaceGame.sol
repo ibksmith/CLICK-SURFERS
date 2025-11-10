@@ -1,0 +1,273 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+/**
+ * @title ClickRaceGame
+ * @dev A click race game contract with voting, deposits, and prize distribution
+ */
+contract ClickRaceGame {
+    // Deposit value options ($0.25 to $3 in wei equivalent)
+    uint256[] public depositOptions = [
+        0.00025 ether,  // $0.25
+        0.0005 ether,   // $0.5
+        0.001 ether,    // $1
+        0.003 ether     // $3
+    ];
+    
+    struct Game {
+        uint256 gameId;
+        uint256 depositAmount;
+        uint256 totalPool;
+        uint256 startTime;
+        uint256 endTime;
+        bool votingEnded;
+        bool gameEnded;
+        address[] contestants;
+        mapping(address => bool) hasDeposited;
+        mapping(address => uint256) clickCounts;
+        mapping(uint256 => uint256) votes; // depositOption index -> vote count
+        mapping(address => bool) votedForDeposit;
+        address[] winners;
+        bool prizesDistributed;
+    }
+    
+    uint256 public currentGameId;
+    mapping(uint256 => Game) public games;
+    address public platformWallet;
+    uint256 public platformFees;
+    
+    uint256 constant VOTING_DURATION = 20; // 20 seconds
+    uint256 constant MAX_CONTESTANTS = 5;
+    
+    event GameCreated(uint256 indexed gameId, uint256 startTime);
+    event VoteCast(uint256 indexed gameId, address indexed voter, uint256 depositOptionIndex);
+    event VotingEnded(uint256 indexed gameId, uint256 winningDepositAmount);
+    event DepositPaid(uint256 indexed gameId, address indexed contestant, uint256 amount);
+    event ClickRegistered(uint256 indexed gameId, address indexed contestant, uint256 clickCount);
+    event GameEnded(uint256 indexed gameId, address[] winners);
+    event PrizeDistributed(uint256 indexed gameId, address indexed winner, uint256 position, uint256 amount);
+    
+    constructor() {
+        platformWallet = msg.sender;
+    }
+    
+    modifier onlyPlatform() {
+        require(msg.sender == platformWallet, "Only platform can call this");
+        _;
+    }
+    
+    /**
+     * @dev Create a new game and start voting
+     */
+    function createGame() external onlyPlatform returns (uint256) {
+        currentGameId++;
+        Game storage game = games[currentGameId];
+        game.gameId = currentGameId;
+        game.startTime = block.timestamp;
+        game.votingEnded = false;
+        game.gameEnded = false;
+        game.prizesDistributed = false;
+        
+        emit GameCreated(currentGameId, block.timestamp);
+        return currentGameId;
+    }
+    
+    /**
+     * @dev Vote for a deposit amount (within 20 seconds)
+     */
+    function voteForDeposit(uint256 gameId, uint256 depositOptionIndex) external {
+        Game storage game = games[gameId];
+        require(!game.votingEnded, "Voting has ended");
+        require(block.timestamp <= game.startTime + VOTING_DURATION, "Voting period expired");
+        require(depositOptionIndex < depositOptions.length, "Invalid deposit option");
+        require(!game.votedForDeposit[msg.sender], "Already voted");
+        
+        game.votes[depositOptionIndex]++;
+        game.votedForDeposit[msg.sender] = true;
+        
+        emit VoteCast(gameId, msg.sender, depositOptionIndex);
+    }
+    
+    /**
+     * @dev End voting and determine the winning deposit amount
+     */
+    function endVoting(uint256 gameId) external {
+        Game storage game = games[gameId];
+        require(!game.votingEnded, "Voting already ended");
+        require(block.timestamp > game.startTime + VOTING_DURATION, "Voting period not expired");
+        
+        // Find the deposit option with most votes
+        uint256 maxVotes = 0;
+        uint256 winningIndex = 0;
+        
+        for (uint256 i = 0; i < depositOptions.length; i++) {
+            if (game.votes[i] > maxVotes) {
+                maxVotes = game.votes[i];
+                winningIndex = i;
+            }
+        }
+        
+        game.depositAmount = depositOptions[winningIndex];
+        game.votingEnded = true;
+        
+        emit VotingEnded(gameId, game.depositAmount);
+    }
+    
+    /**
+     * @dev Pay deposit to join the game
+     */
+    function payDeposit(uint256 gameId) external payable {
+        Game storage game = games[gameId];
+        require(game.votingEnded, "Voting must end first");
+        require(!game.gameEnded, "Game already ended");
+        require(msg.value == game.depositAmount, "Incorrect deposit amount");
+        require(!game.hasDeposited[msg.sender], "Already deposited");
+        require(game.contestants.length < MAX_CONTESTANTS, "Game is full");
+        
+        game.hasDeposited[msg.sender] = true;
+        game.contestants.push(msg.sender);
+        game.totalPool += msg.value;
+        
+        emit DepositPaid(gameId, msg.sender, msg.value);
+    }
+    
+    /**
+     * @dev Register a click for a contestant
+     */
+    function registerClick(uint256 gameId, address contestant) external {
+        Game storage game = games[gameId];
+        require(game.votingEnded, "Game not started");
+        require(!game.gameEnded, "Game already ended");
+        require(game.hasDeposited[contestant], "Not a contestant");
+        
+        game.clickCounts[contestant]++;
+        
+        emit ClickRegistered(gameId, contestant, game.clickCounts[contestant]);
+    }
+    
+    /**
+     * @dev End the game and determine winners
+     */
+    function endGame(uint256 gameId) external {
+        Game storage game = games[gameId];
+        require(game.votingEnded, "Game not started");
+        require(!game.gameEnded, "Game already ended");
+        require(game.contestants.length > 0, "No contestants");
+        
+        // Sort contestants by click count (top 5)
+        address[] memory sortedContestants = _sortContestantsByClicks(gameId);
+        
+        // Store top 5 winners
+        uint256 winnerCount = sortedContestants.length < 5 ? sortedContestants.length : 5;
+        for (uint256 i = 0; i < winnerCount; i++) {
+            game.winners.push(sortedContestants[i]);
+        }
+        
+        game.gameEnded = true;
+        game.endTime = block.timestamp;
+        
+        emit GameEnded(gameId, game.winners);
+    }
+    
+    /**
+     * @dev Distribute prizes to winners
+     */
+    function distributePrizes(uint256 gameId) external {
+        Game storage game = games[gameId];
+        require(game.gameEnded, "Game not ended");
+        require(!game.prizesDistributed, "Prizes already distributed");
+        require(game.totalPool > 0, "No pool to distribute");
+        
+        uint256[] memory percentages = new uint256[](5);
+        percentages[0] = 35; // 1st place: 35%
+        percentages[1] = 25; // 2nd place: 25%
+        percentages[2] = 15; // 3rd place: 15%
+        percentages[3] = 10; // 4th place: 10%
+        percentages[4] = 5;  // 5th place: 5%
+        // Platform: 10% (total = 100%)
+        
+        uint256 platformFee = (game.totalPool * 10) / 100;
+        platformFees += platformFee;
+        
+        for (uint256 i = 0; i < game.winners.length && i < 5; i++) {
+            uint256 prize = (game.totalPool * percentages[i]) / 100;
+            payable(game.winners[i]).transfer(prize);
+            emit PrizeDistributed(gameId, game.winners[i], i + 1, prize);
+        }
+        
+        game.prizesDistributed = true;
+    }
+    
+    /**
+     * @dev Withdraw platform fees
+     */
+    function withdrawPlatformFees() external onlyPlatform {
+        uint256 amount = platformFees;
+        platformFees = 0;
+        payable(platformWallet).transfer(amount);
+    }
+    
+    /**
+     * @dev Get game details
+     */
+    function getGameDetails(uint256 gameId) external view returns (
+        uint256 depositAmount,
+        uint256 totalPool,
+        uint256 contestantCount,
+        bool votingEnded,
+        bool gameEnded,
+        bool prizesDistributed
+    ) {
+        Game storage game = games[gameId];
+        return (
+            game.depositAmount,
+            game.totalPool,
+            game.contestants.length,
+            game.votingEnded,
+            game.gameEnded,
+            game.prizesDistributed
+        );
+    }
+    
+    /**
+     * @dev Get contestant click count
+     */
+    function getClickCount(uint256 gameId, address contestant) external view returns (uint256) {
+        return games[gameId].clickCounts[contestant];
+    }
+    
+    /**
+     * @dev Get votes for a deposit option
+     */
+    function getVotes(uint256 gameId, uint256 depositOptionIndex) external view returns (uint256) {
+        return games[gameId].votes[depositOptionIndex];
+    }
+    
+    /**
+     * @dev Get game winners
+     */
+    function getWinners(uint256 gameId) external view returns (address[] memory) {
+        return games[gameId].winners;
+    }
+    
+    /**
+     * @dev Sort contestants by click count (bubble sort for simplicity)
+     */
+    function _sortContestantsByClicks(uint256 gameId) private view returns (address[] memory) {
+        Game storage game = games[gameId];
+        address[] memory sorted = game.contestants;
+        uint256 n = sorted.length;
+        
+        for (uint256 i = 0; i < n - 1; i++) {
+            for (uint256 j = 0; j < n - i - 1; j++) {
+                if (game.clickCounts[sorted[j]] < game.clickCounts[sorted[j + 1]]) {
+                    address temp = sorted[j];
+                    sorted[j] = sorted[j + 1];
+                    sorted[j + 1] = temp;
+                }
+            }
+        }
+        
+        return sorted;
+    }
+}

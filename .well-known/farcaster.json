@@ -1,0 +1,34 @@
+{
+  "accountAssociation": {
+    "header": "",
+    "payload": "",
+    "signature": ""
+  },
+  "baseBuilder": {
+    "ownerAddress": "0x"
+  },
+  "miniapp": {
+    "version": "1",
+    "name": "Click Race Surfers",
+    "homeUrl": "https://your-domain.com",
+    "iconUrl": "https://your-domain.com/icon.png",
+    "splashImageUrl": "https://your-domain.com/splash.png",
+    "splashBackgroundColor": "#0052FF",
+    "webhookUrl": "https://your-domain.com/api/webhook",
+    "subtitle": "Race penguins on hoverboards!",
+    "description": "A fast, fun way to challenge friends in real time.",
+    "screenshotUrls": [
+      "https://your-domain.com/s1.png",
+      "https://your-domain.com/s2.png",
+      "https://your-domain.com/s3.png"
+    ],
+    "primaryCategory": "games",
+    "tags": ["racing", "web3", "base", "multiplayer"],
+    "heroImageUrl": "https://your-domain.com/og.png",
+    "tagline": "Play instantly",
+    "ogTitle": "Click Race",
+    "ogDescription": "Challenge friends in real time.",
+    "ogImageUrl": "https://your-domain.com/og.png",
+    "noindex": true
+  }
+}
