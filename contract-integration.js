@@ -144,6 +144,16 @@ class ContractInterface {
     // Switch to Base network
     async switchToBaseNetwork() {
         try {
+            // Check current chain ID
+            const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+            console.log('Current chain ID in Web3:', currentChainId);
+            
+            // If already on Base network, no need to switch
+            if (currentChainId === TARGET_NETWORK.chainId) {
+                console.log('Already on target Base network');
+                return;
+            }
+            
             // Try to switch to Base network
             await window.ethereum.request({
                 method: 'wallet_switchEthereumChain',
@@ -151,6 +161,7 @@ class ContractInterface {
             });
             console.log('Switched to Base network');
         } catch (switchError) {
+            console.log('Web3 switch error:', switchError);
             // Network not added to MetaMask, add it
             if (switchError.code === 4902) {
                 try {
@@ -163,6 +174,9 @@ class ContractInterface {
                     console.error('Error adding Base network:', addError);
                     throw addError;
                 }
+            } else if (switchError.code === -32002) {
+                // Request already pending
+                console.log('Web3 network switch request already pending');
             } else {
                 console.error('Error switching to Base network:', switchError);
                 throw switchError;

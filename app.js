@@ -623,6 +623,13 @@ async function connectWallet() {
         const chainId = await window.ethereum.request({ method: 'eth_chainId' });
         console.log('Current Chain ID:', chainId);
         
+        // Log all chain IDs for debugging
+        console.log('Chain ID debugging:');
+        console.log('  - Current:', chainId);
+        console.log('  - Base Sepolia (84532):', '0x14a34');
+        console.log('  - Base Mainnet (8453):', '0x2105');
+        console.log('  - Error chain (50312):', '0xc488');
+        
         // Base Sepolia: 0x14a34 (84532), Base Mainnet: 0x2105 (8453)
         const baseSepoliaChainId = '0x14a34';
         const baseMainnetChainId = '0x2105';
@@ -647,9 +654,16 @@ async function connectWallet() {
         });
 
         // Listen for chain changes
-        window.ethereum.on('chainChanged', (newChainId) => {
+        window.ethereum.on('chainChanged', async (newChainId) => {
             console.log('Chain changed to:', newChainId);
-            window.location.reload();
+            
+            // Check if it's the problematic chain
+            if (newChainId === '0xc488') {
+                console.warn('Detected problematic chain ID 0xc488. Attempting to switch back to Base network.');
+                await switchToBaseNetwork();
+            } else {
+                window.location.reload();
+            }
         });
 
     } catch (error) {
@@ -672,14 +686,37 @@ async function switchToBaseNetwork() {
         blockExplorerUrls: ['https://sepolia.basescan.org']
     };
 
+    const baseMainnetConfig = {
+        chainId: '0x2105', // 8453
+        chainName: 'Base',
+        nativeCurrency: {
+            name: 'Ethereum',
+            symbol: 'ETH',
+            decimals: 18
+        },
+        rpcUrls: ['https://mainnet.base.org'],
+        blockExplorerUrls: ['https://basescan.org']
+    };
+
     try {
-        // Try to switch to Base Sepolia
+        // Check current chain ID
+        const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+        console.log('Current chain ID:', currentChainId);
+        
+        // If already on Base network, no need to switch
+        if (currentChainId === '0x14a34' || currentChainId === '0x2105') {
+            console.log('Already on Base network');
+            return;
+        }
+        
+        // Try to switch to Base Sepolia first
         await window.ethereum.request({
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: baseSepoliaConfig.chainId }],
         });
         console.log('Switched to Base Sepolia network');
     } catch (switchError) {
+        console.log('Switch error:', switchError);
         // Network not added, add it
         if (switchError.code === 4902) {
             try {
@@ -692,9 +729,23 @@ async function switchToBaseNetwork() {
                 console.error('Error adding Base network:', addError);
                 alert('Failed to add Base network. Please add it manually.');
             }
+        } else if (switchError.code === -32002) {
+            // Request already pending
+            console.log('Network switch request already pending');
+            alert('Please check your wallet for a pending network switch request.');
         } else {
             console.error('Error switching network:', switchError);
-            alert('Failed to switch to Base network. Please switch manually.');
+            // Try to switch to Base Mainnet as fallback
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: baseMainnetConfig.chainId }],
+                });
+                console.log('Switched to Base Mainnet');
+            } catch (mainnetError) {
+                console.error('Error switching to Base Mainnet:', mainnetError);
+                alert('Failed to switch to Base network. Please switch manually.');
+            }
         }
     }
 }
