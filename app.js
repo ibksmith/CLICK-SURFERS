@@ -92,11 +92,24 @@ const elements = {
 
 // Initialize Game
 function initGame() {
-    console.log('Initializing Click Race Game...');
+    console.log('🎮 Click Surfers - Initializing...');
+    console.log('📍 Network: Base Sepolia Testnet');
+    console.log('📝 Contract:', CONTRACT_ADDRESS);
+    console.log('🌐 Environment:', window.location.hostname);
+    
+    // Check for Web3 wallet
+    if (typeof window.ethereum !== 'undefined') {
+        console.log('✅ Web3 wallet detected');
+    } else {
+        console.warn('⚠️ No Web3 wallet detected - game will run in demo mode');
+    }
+    
     updateGameInfo();
     startVotingPhase();
     setupEventListeners();
     renderVoteDisplay();
+    
+    console.log('✅ Game initialized successfully');
 }
 
 // Update Game Info Display
@@ -578,15 +591,111 @@ function claimPrize(position, amount) {
     }, 2000);
 }
 
-// Wallet Connection (Simulated)
-function connectWallet() {
-    // In a real app, this would connect to MetaMask or similar
-    if (!gameState.userWallet) {
-        gameState.userWallet = `0x${Math.random().toString(16).substr(2, 40)}`;
+// Wallet Connection - Updated for Base Network
+async function connectWallet() {
+    try {
+        // Check if MetaMask or Web3 wallet is available
+        if (typeof window.ethereum === 'undefined') {
+            alert('Please install MetaMask or a Web3 wallet to play this game.');
+            console.error('No Web3 wallet detected');
+            return;
+        }
+
+        console.log('Connecting to wallet...');
+        
+        // Request account access
+        const accounts = await window.ethereum.request({ 
+            method: 'eth_requestAccounts' 
+        });
+        
+        if (accounts.length === 0) {
+            alert('No accounts found. Please unlock your wallet.');
+            return;
+        }
+
+        gameState.userWallet = accounts[0];
         elements.walletStatus.textContent = `${gameState.userWallet.substr(0, 6)}...${gameState.userWallet.substr(-4)}`;
-        alert('Wallet connected!');
-    } else {
-        alert('Wallet already connected!');
+        elements.connectWalletBtn.classList.add('connected');
+        
+        console.log('Wallet connected:', gameState.userWallet);
+
+        // Check if on Base network
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        console.log('Current Chain ID:', chainId);
+        
+        // Base Sepolia: 0x14a34 (84532), Base Mainnet: 0x2105 (8453)
+        const baseSepoliaChainId = '0x14a34';
+        const baseMainnetChainId = '0x2105';
+        
+        if (chainId !== baseSepoliaChainId && chainId !== baseMainnetChainId) {
+            console.log('Not on Base network, attempting to switch...');
+            await switchToBaseNetwork();
+        }
+
+        // Listen for account changes
+        window.ethereum.on('accountsChanged', (newAccounts) => {
+            if (newAccounts.length === 0) {
+                gameState.userWallet = null;
+                elements.walletStatus.textContent = 'Connect Wallet';
+                elements.connectWalletBtn.classList.remove('connected');
+                console.log('Wallet disconnected');
+            } else {
+                gameState.userWallet = newAccounts[0];
+                elements.walletStatus.textContent = `${gameState.userWallet.substr(0, 6)}...${gameState.userWallet.substr(-4)}`;
+                console.log('Account changed:', gameState.userWallet);
+            }
+        });
+
+        // Listen for chain changes
+        window.ethereum.on('chainChanged', (newChainId) => {
+            console.log('Chain changed to:', newChainId);
+            window.location.reload();
+        });
+
+    } catch (error) {
+        console.error('Error connecting wallet:', error);
+        alert(`Failed to connect wallet: ${error.message}`);
+    }
+}
+
+// Switch to Base Network
+async function switchToBaseNetwork() {
+    const baseSepoliaConfig = {
+        chainId: '0x14a34', // 84532
+        chainName: 'Base Sepolia',
+        nativeCurrency: {
+            name: 'Ethereum',
+            symbol: 'ETH',
+            decimals: 18
+        },
+        rpcUrls: ['https://sepolia.base.org'],
+        blockExplorerUrls: ['https://sepolia.basescan.org']
+    };
+
+    try {
+        // Try to switch to Base Sepolia
+        await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: baseSepoliaConfig.chainId }],
+        });
+        console.log('Switched to Base Sepolia network');
+    } catch (switchError) {
+        // Network not added, add it
+        if (switchError.code === 4902) {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [baseSepoliaConfig],
+                });
+                console.log('Base Sepolia network added and switched');
+            } catch (addError) {
+                console.error('Error adding Base network:', addError);
+                alert('Failed to add Base network. Please add it manually.');
+            }
+        } else {
+            console.error('Error switching network:', switchError);
+            alert('Failed to switch to Base network. Please switch manually.');
+        }
     }
 }
 

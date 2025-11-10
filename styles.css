@@ -1043,6 +1043,16 @@ body.dark-mode .contestant-name {
     background: linear-gradient(135deg, #0066FF 0%, #0052FF 100%);
 }
 
+.btn-wallet.connected {
+    background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+    border-color: #1e7e34;
+}
+
+.btn-wallet.connected:hover {
+    background: linear-gradient(135deg, #34ce57 0%, #28a745 100%);
+    box-shadow: 0 10px 25px rgba(40, 167, 69, 0.4);
+}
+
 /* Footer Attribution */
 .game-footer {
     text-align: center;
