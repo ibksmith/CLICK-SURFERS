@@ -10,7 +10,7 @@
   "miniapp": {
     "version": "1",
     "name": "Click Surfers",
-    "homeUrl": "https://clicksurfers.vercel.app/",
+    "homeUrl": "https://clicksurfers.vercel.app",
     "iconUrl": "https://clicksurfers.vercel.app/icon.png",
     "splashImageUrl": "https://clicksurfers.vercel.app/splash.png",
     "splashBackgroundColor": "#0052FF",
