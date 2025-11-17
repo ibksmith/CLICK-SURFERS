@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "./IMOG.sol";
+import "./Types.sol";
+
 /**
  * @title ClickRaceGame
  * @dev A click race game contract with voting, deposits, and prize distribution
  */
-contract ClickRaceGame {
+contract ClickRaceGame is IMOG {
     // Deposit value options ($0.25 to $3 in wei equivalent)
     uint256[] public depositOptions = [
         0.00025 ether,  // $0.25
@@ -29,7 +32,29 @@ contract ClickRaceGame {
         mapping(address => bool) votedForDeposit;
         address[] winners;
         bool prizesDistributed;
+        
+        // IMOG room data
+        mapping(address => uint256) memberIds; // member address to member id
+        uint256 memberCount;
+        uint256[] memberList; // list of member addresses
+        mapping(uint256 => uint256[]) messageIds; // member id to message ids
     }
+    
+    // IMOG message data
+    struct Message {
+        bytes content;
+        Types.Type[] types;
+        uint256 senderId;
+        uint256[] receiverIds;
+        uint256 timestamp;
+    }
+    
+    // IMOG global data
+    uint256 public roomCount;
+    mapping(uint256 => uint256[]) public roomMembers; // room id to member addresses
+    mapping(address => uint256[]) public memberRooms; // member address to room ids
+    mapping(uint256 => mapping(uint256 => Message)) public roomMessages; // room id -> message id -> Message
+    mapping(uint256 => uint256) public messageCount; // room id -> message count
     
     uint256 public currentGameId;
     mapping(uint256 => Game) public games;
@@ -46,6 +71,11 @@ contract ClickRaceGame {
     event ClickRegistered(uint256 indexed gameId, address indexed contestant, uint256 clickCount);
     event GameEnded(uint256 indexed gameId, address[] winners);
     event PrizeDistributed(uint256 indexed gameId, address indexed winner, uint256 position, uint256 amount);
+    
+    // IMOG Events
+    event RoomCreated(uint256 indexed roomId);
+    event MemberJoined(uint256 indexed roomId, address indexed member, uint256 memberId);
+    event MessageSent(uint256 indexed roomId, uint256 indexed messageId, uint256 senderId, uint256[] receiverIds);
     
     constructor() {
         platformWallet = msg.sender;
@@ -68,8 +98,12 @@ contract ClickRaceGame {
         game.gameEnded = false;
         game.prizesDistributed = false;
         
+        // Also create a room for this game
+        roomCount++;
+        
         emit GameCreated(currentGameId, block.timestamp);
         return currentGameId;
+    }
     }
     
     /**
@@ -269,5 +303,176 @@ contract ClickRaceGame {
         }
         
         return sorted;
+    }
+    
+    // IMOG Interface Implementation
+    
+    /**
+     * @dev Create a new room.
+     * @return New room id.
+     */
+    function createRoom() external override returns (uint256) {
+        roomCount++;
+        emit RoomCreated(roomCount);
+        return roomCount;
+    }
+    
+    /**
+     * @dev Get the total number of rooms that have been created.
+     * @return Total number of rooms.
+     */
+    function getRoomCount() external view override returns (uint256) {
+        return roomCount;
+    }
+    
+    /**
+     * @dev Player joins room.
+     * @param _roomId is the id of the room.
+     * @return Member id.
+     */
+    function joinRoom(uint256 _roomId) external override returns (uint256) {
+        require(_roomId > 0 && _roomId <= roomCount, "Invalid room id");
+        
+        // Check if member already exists in room
+        if (games[_roomId].memberIds[msg.sender] == 0) {
+            // Assign new member id
+            games[_roomId].memberCount++;
+            uint256 memberId = games[_roomId].memberCount;
+            games[_roomId].memberIds[msg.sender] = memberId;
+            games[_roomId].memberList.push(msg.sender);
+            
+            // Add to room members list
+            roomMembers[_roomId].push(memberId);
+            
+            // Add room to member's room list
+            memberRooms[msg.sender].push(_roomId);
+            
+            emit MemberJoined(_roomId, msg.sender, memberId);
+            
+            return memberId;
+        }
+        
+        return games[_roomId].memberIds[msg.sender];
+    }
+    
+    /**
+     * @dev Get the id of a member in a room.
+     * @param _roomId is the id of the room.
+     * @param _member is the address of a member.
+     * @return Member id.
+     */
+    function getMemberId(uint256 _roomId, address _member) external view override returns (uint256) {
+        return games[_roomId].memberIds[_member];
+    }
+    
+    /**
+     * @dev Check if a member exists in the room.
+     * @param _roomId is the id of the room.
+     * @param _member is the address of a member.
+     * @return true exists, false does not exist.
+     */
+    function hasMember(uint256 _roomId, address _member) external view override returns (bool) {
+        return games[_roomId].memberIds[_member] != 0;
+    }
+    
+    /**
+     * @dev Get all room IDs joined by a member.
+     * @param _member is the address of a member.
+     * @return An array of room ids.
+     */
+    function getRoomIds(address _member) external view override returns (uint256[] memory) {
+        return memberRooms[_member];
+    }
+    
+    /**
+     * @dev Get the total number of members in a room.
+     * @param _roomId is the id of the room.
+     * @return Total members.
+     */
+    function getMemberCount(uint256 _roomId) external view override returns (uint256) {
+        return games[_roomId].memberCount;
+    }
+    
+    /**
+     * @dev A member sends a message to other members.
+     * @param _roomId is the id of the room.
+     * @param _to is an array of other member ids.
+     * @param _message is the content of the message, encoded by abi.encode.
+     * @param _messageTypes is data type array of message content.
+     * @return Message id.
+     */
+    function sendMessage(
+        uint256 _roomId,
+        uint256[] memory _to,
+        bytes memory _message,
+        Types.Type[] memory _messageTypes
+    ) external override returns (uint256) {
+        require(_roomId > 0 && _roomId <= roomCount, "Invalid room id");
+        require(games[_roomId].memberIds[msg.sender] != 0, "Member not in room");
+        
+        uint256 senderId = games[_roomId].memberIds[msg.sender];
+        
+        // Create new message
+        messageCount[_roomId]++;
+        uint256 messageId = messageCount[_roomId];
+        
+        Message storage newMessage = roomMessages[_roomId][messageId];
+        newMessage.content = _message;
+        newMessage.types = _messageTypes;
+        newMessage.senderId = senderId;
+        newMessage.receiverIds = _to;
+        newMessage.timestamp = block.timestamp;
+        
+        // Add message id to each receiver's message list
+        for (uint256 i = 0; i < _to.length; i++) {
+            games[_roomId].messageIds[_to[i]].push(messageId);
+        }
+        
+        // Also add to sender's message list
+        games[_roomId].messageIds[senderId].push(messageId);
+        
+        emit MessageSent(_roomId, messageId, senderId, _to);
+        
+        return messageId;
+    }
+    
+    /**
+     * @dev Get all messages received by a member in the room.
+     * @param _roomId is the id of the room.
+     * @param _memberId is the id of the member.
+     * @return An array of message ids.
+     */
+    function getMessageIds(uint256 _roomId, uint256 _memberId) external view override returns (uint256[] memory) {
+        require(_roomId > 0 && _roomId <= roomCount, "Invalid room id");
+        return games[_roomId].messageIds[_memberId];
+    }
+    
+    /**
+     * @dev Get details of a message.
+     * @param _roomId is the id of the room.
+     * @param _messageId is the id of the message.
+     * @return The content of the message.
+     * @return Data type array of message content.
+     * @return Sender id.
+     * @return An array of receiver ids.
+     */
+    function getMessage(
+        uint256 _roomId,
+        uint256 _messageId
+    ) external view override returns (
+        bytes memory,
+        Types.Type[] memory,
+        uint256,
+        uint256[] memory
+    ) {
+        require(_roomId > 0 && _roomId <= roomCount, "Invalid room id");
+        Message storage message = roomMessages[_roomId][_messageId];
+        
+        return (
+            message.content,
+            message.types,
+            message.senderId,
+            message.receiverIds
+        );
     }
 }

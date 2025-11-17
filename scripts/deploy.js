@@ -11,9 +11,9 @@ async function main() {
   const balance = await hre.ethers.provider.getBalance(deployer.address);
   console.log("Account balance:", hre.ethers.formatEther(balance), "ETH");
   
-  // Deploy the contract
+  // Deploy the main contract
   const ClickRaceGame = await hre.ethers.getContractFactory("ClickRaceGame");
-  console.log("Deploying contract...");
+  console.log("Deploying ClickRaceGame contract...");
   
   const game = await ClickRaceGame.deploy();
   await game.waitForDeployment();
@@ -21,6 +21,16 @@ async function main() {
   const contractAddress = await game.getAddress();
   console.log("✅ ClickRaceGame deployed to:", contractAddress);
   console.log("Platform wallet:", deployer.address);
+  
+  // Deploy the messaging contract
+  const ClickRaceGameWithMessaging = await hre.ethers.getContractFactory("ClickRaceGameWithMessaging");
+  console.log("Deploying ClickRaceGameWithMessaging contract...");
+  
+  const messaging = await ClickRaceGameWithMessaging.deploy(contractAddress);
+  await messaging.waitForDeployment();
+  
+  const messagingAddress = await messaging.getAddress();
+  console.log("✅ ClickRaceGameWithMessaging deployed to:", messagingAddress);
   
   // Display network info
   const network = await hre.ethers.provider.getNetwork();
@@ -30,7 +40,8 @@ async function main() {
   // Display deployment info
   console.log("\n📋 Deployment Summary:");
   console.log("======================");
-  console.log("Contract Address:", contractAddress);
+  console.log("ClickRaceGame Address:", contractAddress);
+  console.log("ClickRaceGameWithMessaging Address:", messagingAddress);
   console.log("Network:", network.chainId === 8453n ? "Base Mainnet" : 
                        network.chainId === 84532n ? "Base Sepolia Testnet" :
                        network.chainId === 84531n ? "Base Goerli Testnet" : "Unknown");
@@ -46,17 +57,24 @@ async function main() {
   // Wait for block confirmations (Base is fast!)
   console.log("\nWaiting for 3 block confirmations...");
   await game.deploymentTransaction().wait(3);
+  await messaging.deploymentTransaction().wait(3);
   console.log("✅ Confirmed!");
   
-  // Verify contract on BaseScan (if API key is set)
+  // Verify contracts on BaseScan (if API key is set)
   if (process.env.BASESCAN_API_KEY) {
-    console.log("\nVerifying contract on BaseScan...");
+    console.log("\nVerifying contracts on BaseScan...");
     try {
       await hre.run("verify:verify", {
         address: contractAddress,
         constructorArguments: [],
       });
-      console.log("✅ Contract verified!");
+      console.log("✅ ClickRaceGame verified!");
+      
+      await hre.run("verify:verify", {
+        address: messagingAddress,
+        constructorArguments: [contractAddress],
+      });
+      console.log("✅ ClickRaceGameWithMessaging verified!");
     } catch (error) {
       console.log("❌ Verification failed:", error.message);
     }
