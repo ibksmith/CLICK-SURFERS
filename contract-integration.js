@@ -33,6 +33,11 @@ const TARGET_NETWORK = NETWORKS.BASE_SEPOLIA;
 // Contract ABI (Application Binary Interface)
 const CONTRACT_ABI = [
     {
+        "inputs": [{"type": "address"}],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
         "inputs": [],
         "name": "createGame",
         "outputs": [{"type": "uint256"}],
@@ -82,6 +87,13 @@ const CONTRACT_ABI = [
         "type": "function"
     },
     {
+        "inputs": [{"type": "uint256"}, {"type": "string"}],
+        "name": "setGameBuilderCode",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
         "inputs": [{"type": "uint256"}],
         "name": "getGameDetails",
         "outputs": [
@@ -92,6 +104,13 @@ const CONTRACT_ABI = [
             {"type": "bool"},
             {"type": "bool"}
         ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [{"type": "uint256"}, {"type": "string"}],
+        "name": "gameBuilderCodes",
+        "outputs": [{"type": "string"}],
         "stateMutability": "view",
         "type": "function"
     }
@@ -184,18 +203,29 @@ class ContractInterface {
         }
     }
 
-    // Create a new game
-    async createGame() {
+    // Set builder code for a game
+    async setGameBuilderCode(gameId, builderCode) {
         try {
-            const result = await this.contract.methods.createGame().send({
+            const result = await this.contract.methods.setGameBuilderCode(gameId, builderCode).send({
                 from: this.account
             });
             
-            const gameId = result.events.GameCreated.returnValues.gameId;
-            console.log('Game created with ID:', gameId);
-            return gameId;
+            console.log('Builder code set for game:', gameId, 'Code:', builderCode);
+            return result;
         } catch (error) {
-            console.error('Error creating game:', error);
+            console.error('Error setting builder code:', error);
+            throw error;
+        }
+    }
+    
+    // Get builder code for a game
+    async getGameBuilderCode(gameId) {
+        try {
+            const builderCode = await this.contract.methods.gameBuilderCodes(gameId).call();
+            console.log('Builder code for game', gameId, ':', builderCode);
+            return builderCode;
+        } catch (error) {
+            console.error('Error getting builder code:', error);
             throw error;
         }
     }

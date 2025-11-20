@@ -1,7 +1,7 @@
 const hre = require("hardhat");
 
 async function main() {
-  console.log("Deploying ClickRaceGame to Base Network...");
+  console.log("Deploying ClickRaceGame and BuilderCodeRegistry to Base Network...");
   
   // Get the deployer account
   const [deployer] = await hre.ethers.getSigners();
@@ -11,11 +11,21 @@ async function main() {
   const balance = await hre.ethers.provider.getBalance(deployer.address);
   console.log("Account balance:", hre.ethers.formatEther(balance), "ETH");
   
+  // Deploy the BuilderCodeRegistry contract first
+  const BuilderCodeRegistry = await hre.ethers.getContractFactory("BuilderCodeRegistry");
+  console.log("Deploying BuilderCodeRegistry contract...");
+  
+  const registry = await BuilderCodeRegistry.deploy();
+  await registry.waitForDeployment();
+  
+  const registryAddress = await registry.getAddress();
+  console.log("✅ BuilderCodeRegistry deployed to:", registryAddress);
+  
   // Deploy the main contract
   const ClickRaceGame = await hre.ethers.getContractFactory("ClickRaceGame");
   console.log("Deploying ClickRaceGame contract...");
   
-  const game = await ClickRaceGame.deploy();
+  const game = await ClickRaceGame.deploy(registryAddress);
   await game.waitForDeployment();
   
   const contractAddress = await game.getAddress();
@@ -40,6 +50,7 @@ async function main() {
   // Display deployment info
   console.log("\n📋 Deployment Summary:");
   console.log("======================");
+  console.log("BuilderCodeRegistry Address:", registryAddress);
   console.log("ClickRaceGame Address:", contractAddress);
   console.log("ClickRaceGameWithMessaging Address:", messagingAddress);
   console.log("Network:", network.chainId === 8453n ? "Base Mainnet" : 
@@ -58,6 +69,7 @@ async function main() {
   console.log("\nWaiting for 3 block confirmations...");
   await game.deploymentTransaction().wait(3);
   await messaging.deploymentTransaction().wait(3);
+  await registry.deploymentTransaction().wait(3);
   console.log("✅ Confirmed!");
   
   // Verify contracts on BaseScan (if API key is set)
@@ -65,8 +77,14 @@ async function main() {
     console.log("\nVerifying contracts on BaseScan...");
     try {
       await hre.run("verify:verify", {
-        address: contractAddress,
+        address: registryAddress,
         constructorArguments: [],
+      });
+      console.log("✅ BuilderCodeRegistry verified!");
+      
+      await hre.run("verify:verify", {
+        address: contractAddress,
+        constructorArguments: [registryAddress],
       });
       console.log("✅ ClickRaceGame verified!");
       

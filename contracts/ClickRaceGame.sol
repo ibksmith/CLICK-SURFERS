@@ -7,8 +7,22 @@ import "./Types.sol";
 /**
  * @title ClickRaceGame
  * @dev A click race game contract with voting, deposits, and prize distribution
+ * Implements ERC-8021 builder codes for developer revenue sharing
+ */
+
+/**
+ * @title ClickRaceGame
+ * @dev A click race game contract with voting, deposits, and prize distribution
  */
 contract ClickRaceGame is IMOG {
+    // Address of the BuilderCodeRegistry contract
+    address public builderCodeRegistry;
+    
+    // Mapping to track builder codes used in games
+    mapping(uint256 => string) public gameBuilderCodes;
+    
+    // Platform fee percentage for builder code revenue sharing (in basis points, 100 = 1%)
+    uint256 public builderCodeFeeBasisPoints = 50; // 0.5% default
     // Deposit value options ($0.25 to $3 in wei equivalent)
     uint256[] public depositOptions = [
         0.00025 ether,  // $0.25
@@ -77,13 +91,52 @@ contract ClickRaceGame is IMOG {
     event MemberJoined(uint256 indexed roomId, address indexed member, uint256 memberId);
     event MessageSent(uint256 indexed roomId, uint256 indexed messageId, uint256 senderId, uint256[] receiverIds);
     
-    constructor() {
+    constructor(address _builderCodeRegistry) {
         platformWallet = msg.sender;
+        builderCodeRegistry = _builderCodeRegistry;
     }
     
     modifier onlyPlatform() {
         require(msg.sender == platformWallet, "Only platform can call this");
         _;
+    }
+    
+    /**
+     * @dev Set builder code registry address
+     * @param _registry The address of the BuilderCodeRegistry contract
+     */
+    function setBuilderCodeRegistry(address _registry) external onlyPlatform {
+        builderCodeRegistry = _registry;
+    }
+    
+    /**
+     * @dev Set builder code fee percentage
+     * @param _basisPoints Fee in basis points (100 = 1%)
+     */
+    function setBuilderCodeFee(uint256 _basisPoints) external onlyPlatform {
+        require(_basisPoints <= 1000, "Fee cannot exceed 10%");
+        builderCodeFeeBasisPoints = _basisPoints;
+    }
+    
+    /**
+     * @dev Set builder code for a game
+     * @param _gameId The game ID
+     * @param _builderCode The builder code
+     */
+    function setGameBuilderCode(uint256 _gameId, string memory _builderCode) external onlyPlatform {
+        // Verify the builder code is registered
+        if (builderCodeRegistry != address(0)) {
+            (bool success, bytes memory result) = builderCodeRegistry.call(
+                abi.encodeWithSignature("isRegistered(string)", _builderCode)
+            );
+            
+            if (success && result.length >= 32) {
+                bool isRegistered = abi.decode(result, (bool));
+                require(isRegistered, "Builder code not registered");
+            }
+        }
+        
+        gameBuilderCodes[_gameId] = _builderCode;
     }
     
     /**
@@ -212,21 +265,50 @@ contract ClickRaceGame is IMOG {
         require(!game.prizesDistributed, "Prizes already distributed");
         require(game.totalPool > 0, "No pool to distribute");
         
+        // Calculate builder code fee if applicable
+        uint256 builderFee = 0;
+        if (builderCodeRegistry != address(0) && bytes(gameBuilderCodes[gameId]).length > 0) {
+            builderFee = (game.totalPool * builderCodeFeeBasisPoints) / 10000;
+        }
+        
+        // Calculate platform fee (now reduced by builder fee)
+        uint256 platformFee = ((game.totalPool - builderFee) * 10) / 100;
+        platformFees += platformFee;
+        
+        // Distribute to winners (from remaining pool)
+        uint256 remainingPool = game.totalPool - platformFee - builderFee;
+        
         uint256[] memory percentages = new uint256[](5);
         percentages[0] = 35; // 1st place: 35%
         percentages[1] = 25; // 2nd place: 25%
         percentages[2] = 15; // 3rd place: 15%
         percentages[3] = 10; // 4th place: 10%
         percentages[4] = 5;  // 5th place: 5%
-        // Platform: 10% (total = 100%)
-        
-        uint256 platformFee = (game.totalPool * 10) / 100;
-        platformFees += platformFee;
         
         for (uint256 i = 0; i < game.winners.length && i < 5; i++) {
-            uint256 prize = (game.totalPool * percentages[i]) / 100;
+            uint256 prize = (remainingPool * percentages[i]) / 100;
             payable(game.winners[i]).transfer(prize);
             emit PrizeDistributed(gameId, game.winners[i], i + 1, prize);
+        }
+        
+        // Distribute builder code fee
+        if (builderFee > 0) {
+            // Get developer address from builder code registry
+            (bool success, bytes memory result) = builderCodeRegistry.call(
+                abi.encodeWithSignature("getDeveloperByBuilderCode(string)", gameBuilderCodes[gameId])
+            );
+            
+            if (success && result.length >= 32) {
+                address developer = abi.decode(result, (address));
+                if (developer != address(0)) {
+                    payable(developer).transfer(builderFee);
+                    
+                    // Emit event
+                    (bool success2, ) = builderCodeRegistry.call(
+                        abi.encodeWithSignature("distributeRevenue(string,uint256)", gameBuilderCodes[gameId], builderFee)
+                    );
+                }
+            }
         }
         
         game.prizesDistributed = true;

@@ -273,30 +273,30 @@
     </div>
 
     <script type="module">
-        // Import Farcaster MiniApp SDK (pinned to version 0.2.1)
-        import sdk from '@farcaster/miniapp-sdk';
+        // Import Farcaster MiniApp SDK (following Farcaster guide)
+        import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk@0.2.1';
         
         // Make SDK globally available for debugging and stability
         window.farcasterSdk = sdk;
         
         // Dedicated MiniApp initialization function
         async function initMiniApp() {
-            // Check document readyState
-            if (document.readyState === 'loading') {
-                console.log('MiniApp: Waiting for DOM to be ready...');
-                await new Promise(resolve => {
-                    document.addEventListener('DOMContentLoaded', resolve);
-                });
-            }
-            
             try {
                 console.log('Initializing Farcaster MiniApp SDK...');
                 
-                // Detect Farcaster context
-                const context = await sdk.context;
-                console.log('MiniApp context:', context);
+                // Wait for app to be fully loaded and ready to display
+                // Check if document is already ready
+                if (document.readyState === 'loading') {
+                    await new Promise(resolve => {
+                        document.addEventListener('DOMContentLoaded', resolve);
+                    });
+                }
                 
-                // Signal that the app is ready to display
+                // Small delay to ensure UI is rendered
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Signal that the app is ready to display (as per Farcaster guide)
+                console.log('Sending ready signal to Farcaster...');
                 await sdk.actions.ready();
                 console.log('MiniApp ready signal sent successfully');
                 

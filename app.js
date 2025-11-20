@@ -57,7 +57,8 @@ const gameState = {
     totalPool: 0,
     winners: [],
     TOTAL_DISTANCE: 100, // Point Nemo to Point Terminus: 100 miles
-    finishedContestants: [] // Track who finished
+    finishedContestants: [], // Track who finished
+    builderCode: '' // Builder code for revenue sharing
 };
 
 // Deposit options
@@ -102,6 +103,24 @@ function initGame() {
         console.log('✅ Web3 wallet detected');
     } else {
         console.warn('⚠️ No Web3 wallet detected - game will run in demo mode');
+    }
+    
+    // Check for builder code in URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const builderCode = urlParams.get('builder');
+    if (builderCode) {
+        gameState.builderCode = builderCode;
+        console.log('Builder code detected:', builderCode);
+        
+        // Store in localStorage for future use
+        localStorage.setItem('builderCode', builderCode);
+    } else {
+        // Check for stored builder code
+        const storedBuilderCode = localStorage.getItem('builderCode');
+        if (storedBuilderCode) {
+            gameState.builderCode = storedBuilderCode;
+            console.log('Using stored builder code:', storedBuilderCode);
+        }
     }
     
     updateGameInfo();
@@ -593,6 +612,30 @@ function claimPrize(position, amount) {
 
 // Wallet Connection - Updated for Base Network
 async function connectWallet() {
+    // Check if already connected, then disconnect
+    if (gameState.userWallet) {
+        // Disconnect wallet
+        gameState.userWallet = null;
+        elements.walletStatus.textContent = 'Connect Wallet';
+        elements.connectWalletBtn.classList.remove('connected');
+        
+        // Update button text
+        elements.connectWalletBtn.innerHTML = '<span id="walletStatus">Connect Wallet</span>';
+        
+        // Remove event listeners if supported
+        if (window.ethereum && window.ethereum.removeAllListeners) {
+            window.ethereum.removeAllListeners('accountsChanged');
+            window.ethereum.removeAllListeners('chainChanged');
+        } else if (window.ethereum) {
+            // Fallback: remove individual listeners if removeAllListeners is not available
+            window.ethereum.removeListener && window.ethereum.removeListener('accountsChanged');
+            window.ethereum.removeListener && window.ethereum.removeListener('chainChanged');
+        }
+        
+        console.log('Wallet disconnected');
+        return;
+    }
+    
     try {
         // Check if MetaMask or Web3 wallet is available
         if (typeof window.ethereum === 'undefined') {
@@ -616,6 +659,9 @@ async function connectWallet() {
         gameState.userWallet = accounts[0];
         elements.walletStatus.textContent = `${gameState.userWallet.substr(0, 6)}...${gameState.userWallet.substr(-4)}`;
         elements.connectWalletBtn.classList.add('connected');
+        
+        // Update button text to show disconnect option
+        elements.connectWalletBtn.innerHTML = '<span id="walletStatus">Disconnect Wallet</span>';
         
         console.log('Wallet connected:', gameState.userWallet);
 
@@ -645,10 +691,15 @@ async function connectWallet() {
                 gameState.userWallet = null;
                 elements.walletStatus.textContent = 'Connect Wallet';
                 elements.connectWalletBtn.classList.remove('connected');
+                // Update button text
+                elements.connectWalletBtn.innerHTML = '<span id="walletStatus">Connect Wallet</span>';
                 console.log('Wallet disconnected');
             } else {
                 gameState.userWallet = newAccounts[0];
                 elements.walletStatus.textContent = `${gameState.userWallet.substr(0, 6)}...${gameState.userWallet.substr(-4)}`;
+                elements.connectWalletBtn.classList.add('connected');
+                // Update button text
+                elements.connectWalletBtn.innerHTML = '<span id="walletStatus">Disconnect Wallet</span>';
                 console.log('Account changed:', gameState.userWallet);
             }
         });
@@ -793,7 +844,11 @@ function setupEventListeners() {
 // Start the game when page loads
 window.addEventListener('DOMContentLoaded', () => {
     initializeDarkMode();
-    initGame();
+    
+    // Give Farcaster SDK time to initialize before starting the game
+    setTimeout(() => {
+        initGame();
+    }, 300);
 });
 
 // Export for potential contract integration

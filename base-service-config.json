@@ -10,7 +10,7 @@
   },
   "deployment": {
     "platform": "vercel",
-    "url": "https://your-vercel-app.vercel.app",
+    "url": "https://clicksurfers.vercel.app/",
     "type": "frontend"
   },
   "blockchain": {
@@ -19,7 +19,7 @@
     "networkName": "Base Sepolia Testnet",
     "contracts": [
       {
-        "name": "ClickRaceGame",
+        "name": "Click Surfers",
         "address": "0x4453c351b1dfeff3f8379f441629a4b0e2d5c894",
         "abi": "contracts/ClickRaceGame.sol",
         "verified": true,
